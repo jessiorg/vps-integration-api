@@ -1,0 +1,22 @@
+[Unit]
+Description=VPS Integration API
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vps-integration-api
+ExecStartPre=-/usr/bin/docker stop vps-integration-api
+ExecStartPre=-/usr/bin/docker rm vps-integration-api
+ExecStart=/usr/bin/docker run --rm --name vps-integration-api \
+    -p 8000:8000 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v /opt/vps-integration-api:/app \
+    -v /opt/vps-integration-api/.env:/app/.env \
+    vps-integration-api:latest
+ExecStop=/usr/bin/docker stop vps-integration-api
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
