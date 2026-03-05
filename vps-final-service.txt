@@ -1,0 +1,34 @@
+[Unit]
+Description=VPS Integration API
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vps-integration-api
+ExecStartPre=-/usr/bin/docker stop vps-integration-api
+ExecStartPre=-/usr/bin/docker rm vps-integration-api
+ExecStart=/usr/bin/docker run --rm --name vps-integration-api \
+    -p 8000:8000 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v /opt/vps-integration-api:/app \
+    -e PYDANTIC_SETTINGS_ENV_FILE=/dev/null \
+    -e API_HOST=0.0.0.0 \
+    -e API_PORT=8000 \
+    -e SECRET_KEY=cc42867a8a7c8e73b5f7a1a3bcd7890ff9e2c78e3a8f4b5d6c7e8a9b0c1d2e3f \
+    -e API_KEY_ENABLED=true \
+    -e API_KEY=oracle_vps_integration_key_2026 \
+    -e GITHUB_AUTH_ENABLED=false \
+    -e GITHUB_CLIENT_ID=disabled \
+    -e GITHUB_CLIENT_SECRET=disabled \
+    -e GITHUB_REDIRECT_URI=disabled \
+    -e ALLOWED_USERS='["ubuntu"]' \
+    -e CORS_ORIGINS='["*"]' \
+    -e ALLOWED_PATHS='["/data","/var/log","/etc/nginx","/tmp","/data/docker","/opt"]' \
+    vps-integration-api:latest
+ExecStop=/usr/bin/docker stop vps-integration-api
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
