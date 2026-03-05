@@ -1,0 +1,30 @@
+[Unit]
+Description=VPS Integration API Service
+Documentation=https://github.com/jessiorg/vps-integration-api
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/vps-integration-api
+ExecStart=/usr/bin/python3 -m uvicorn app:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vps-integration-api
+
+# Environment Variables
+Environment="GITHUB_AUTH_ENABLED=false"
+Environment="ALLOWED_USERS=[\"ubuntu\"]"
+Environment="API_KEY_ENABLED=true"
+Environment="API_KEY=oracle_vps_integration_key_2026"
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
