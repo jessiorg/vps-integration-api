@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  vps-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: vps-integration-api:latest
+    container_name: vps-integration-api
+    restart: unless-stopped
+    
+    ports:
+      - "8000:8000"
+    
+    volumes:
+      # Mount Docker socket for container management
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount allowed directories for file operations
+      - /data:/data
+      - /var/log:/var/log:ro
+      - /tmp:/tmp
+    
+    env_file:
+      - .env
+    
+    environment:
+      - PYTHONUNBUFFERED=1
+    
+    networks:
+      - vps-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    labels:
+      - "com.vps.description=VPS Integration API"
+      - "com.vps.version=1.0.0"
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Redis for rate limiting and caching
+  redis:
+    image: redis:7-alpine
+    container_name: vps-redis
+    restart: unless-stopped
+    
+    ports:
+      - "127.0.0.1:6379:6379"
+    
+    volumes:
+      - redis-data:/data
+    
+    networks:
+      - vps-network
+    
+    command: redis-server --appendonly yes
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  vps-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
